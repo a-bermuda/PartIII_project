@@ -1,4 +1,4 @@
-# receptor KO / KD
+# file to measure effect of HSPG on FGF concentration next to the membrane 
 
 import smoldyn
 import random
@@ -11,7 +11,7 @@ scriptdir = Path(__file__).parent
 MAX_CPUS = 56
 
 
-def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_step=0.01, run_time=1.0):
+def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_step=0.01, run_time=1.0, H_decay=0, filename_suffix=""):
     start_time = datetime.now()
     print(f"smoldyn: {smoldyn.version()}, building simulation: {start_time.strftime('%H:%M:%S')}")
     s = smoldyn.Simulation(low=[0, 0], high=[100, 20])
@@ -59,6 +59,7 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
     RR = s.addSpecies("RR", difc=dict(all=316), color=dict(all="blue"), display_size=1)
     FH = s.addSpecies("FH", difc=dict(all=316), color=dict(all="pink"), display_size=1)
     FHRR = s.addSpecies("FHRR", difc=dict(all=316), color=dict(all="purple"), display_size=1)
+    #FRR = s.addSpecies("FRR", difc=dict(all=316), color=dict(all="cyan"), display_size=1)
     ##########
 
     
@@ -70,10 +71,10 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
     sides = s.addSurface("sides", panels=[r1, r2])
     top_and_bottom = s.addSurface("top_and_bottom", panels=[r3, r4])
     top_and_bottom.setStyle('both', "black")
-    top_and_bottom.setAction('both', [F, H, R, RR, FH, FHRR, vesicle_F, vesicle_F_top, vesicle_R, vesicle_R_top, vesicle_H, vesicle_H_top, fused_vesicle_H, fused_vesicle_R, fused_vesicle_F], 'reflect')
+    top_and_bottom.setAction('both', [F, H, R, RR, FH, FRR, FHRR, vesicle_F, vesicle_F_top, vesicle_R, vesicle_R_top, vesicle_H, vesicle_H_top, fused_vesicle_H, fused_vesicle_R, fused_vesicle_F], 'reflect')
 
-    sides.setAction('front', [F, H, R, RR, FH, FHRR, vesicle_F, vesicle_F_top, vesicle_R,vesicle_R_top, vesicle_H, vesicle_H_top, fused_vesicle_H, fused_vesicle_R, fused_vesicle_F], 'jump')
-    sides.setAction('back', [F, H, R, RR, FH, FHRR, vesicle_F, vesicle_F_top, vesicle_R, vesicle_R_top, vesicle_H, vesicle_H_top,  fused_vesicle_H, fused_vesicle_R, fused_vesicle_F], 'reflect')
+    sides.setAction('front', [F, H, R, RR, FH, FRR, FHRR, vesicle_F, vesicle_F_top, vesicle_R,vesicle_R_top, vesicle_H, vesicle_H_top, fused_vesicle_H, fused_vesicle_R, fused_vesicle_F], 'jump')
+    sides.setAction('back', [F, H, R, RR, FH, FRR, FHRR, vesicle_F, vesicle_F_top, vesicle_R, vesicle_R_top, vesicle_H, vesicle_H_top,  fused_vesicle_H, fused_vesicle_R, fused_vesicle_F], 'reflect')
 
     sides.setStyle('front', color="red")
     sides.setStyle('back', color="blue")
@@ -86,7 +87,7 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
     rect1 = smoldyn.Rectangle(corner=(0, 5), dimensions=[100], axis="+y")
     bottom_PM = s.addSurface("bottom_PM", panels=[rect1])
     bottom_PM.setStyle('both', color="black", thickness=1)
-    bottom_PM.setAction('both', [F, H, R, RR, FH, FHRR, vesicle_F, vesicle_F_top, vesicle_R, vesicle_R_top, vesicle_H, vesicle_H_top, fused_vesicle_H, fused_vesicle_R, fused_vesicle_F], "reflect")
+    bottom_PM.setAction('both', [F, H, R, RR, FH, FRR, FHRR, vesicle_F, vesicle_F_top, vesicle_R, vesicle_R_top, vesicle_H, vesicle_H_top, fused_vesicle_H, fused_vesicle_R, fused_vesicle_F], "reflect")
     bottom_cell = s.addCompartment(name="bottom_cell", surface="bottom_PM", point=[1, 1])
     ##########
 
@@ -94,7 +95,7 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
     rect2 = smoldyn.Rectangle(corner=(0, 15), dimensions=[100], axis="+y")
     top_PM = s.addSurface("top_PM", panels=[rect2])
     top_PM.setStyle('both', color="black", thickness=1)
-    top_PM.setAction('both', [F, H, R, RR, FH, FHRR, vesicle_F, vesicle_F_top, vesicle_R, vesicle_R_top, vesicle_H, vesicle_H_top, fused_vesicle_H, fused_vesicle_R, fused_vesicle_F], "reflect")
+    top_PM.setAction('both', [F, H, R, RR, FH, FRR, FHRR, vesicle_F, vesicle_F_top, vesicle_R, vesicle_R_top, vesicle_H, vesicle_H_top, fused_vesicle_H, fused_vesicle_R, fused_vesicle_F], "reflect")
     top_cell = s.addCompartment(name="top_cell", surface="top_PM", point=[99, 19])
     ##########
 
@@ -111,8 +112,8 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
     F_decay = s.addReaction("F_decay", subs=[F], prds=[], rate=endo_rate)
 
     R_vesicle_production = s.addReaction("R_vesicle_production", [], [vesicle_R], rate=R_exo_rate)
-    s.addCommand("killmol vesicle_R", cmd_type='i', on=30, off=run_time, step=0.01)
-    s.addCommand("killmol vesicle_R_top", cmd_type='i', on=30, off=run_time, step=0.01)
+    #s.addCommand("killmol vesicle_R", cmd_type='i', on=30, off=run_time, step=0.01)
+    #s.addCommand("killmol vesicle_R_top", cmd_type='i', on=30, off=run_time, step=0.01)
     R_vesicle_production_top = s.addReaction("R_vesicle_production_top", [], [vesicle_R_top], rate=R_exo_rate)
     top_PM.setRate(vesicle_R_top, 'fsoln', 'front', rate=1000, revrate=0)
     top_PM.setRate(vesicle_R_top, 'front', 'down', rate=1000, new_species=fused_vesicle_R)
@@ -124,6 +125,7 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
 
     H_vesicle_production = s.addReaction("H_vesicle_production", [], [vesicle_H], rate=exo_rate)
     H_vesicle_production_top = s.addReaction("H_vesicle_production_top", [], [vesicle_H_top], rate=exo_rate)
+    s.addCommand(f"killmolprob H(all) {H_decay}", cmd_type='i', on=60, off=run_time, step=0.01)
     top_PM.setRate(vesicle_H_top, 'fsoln', 'front', rate=1000, revrate=0)
     top_PM.setRate(vesicle_H_top, 'front', 'down', rate=1000, new_species=fused_vesicle_H)
     bottom_PM.setRate(vesicle_H, 'bsoln', 'back', rate=1000, revrate=0)
@@ -148,6 +150,11 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
     FH_to_RR_bottom = s.addReaction("FH_to_RR_bottom", subs=[(FH, 'up'), (RR, 'up')], prds=[(FHRR, 'up')], rate = 190000, surface=bottom_PM)
     ##########
 
+    ########## F + RR -> FRR
+    #F_to_RR_top = s.addReaction("F_to_RR_top", subs=[(F, 'soln'), (RR, 'down')], prds=[(FRR, 'down')], rate = 190000, surface=top_PM)
+    #F_to_RR_bottom = s.addReaction("F_to_RR_bottom", subs=[(F, 'soln'), (RR, 'up')], prds=[(FRR, 'up')], rate = 190000, surface=bottom_PM)
+    ##########
+
     ########## endocytosis of all molecules
     H_endo_top = s.addReaction("H_endo_top", subs=[(H, 'down')], prds=[(H, 'fsoln')], rate=endo_rate)
     H_decay_top = s.addReaction("H_decay_top", subs=[(H, 'fsoln')], prds=[], rate=100) 
@@ -164,10 +171,10 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
     RR_endo_bottom = s.addReaction("RR_endo_bottom", subs=[(RR, 'up')], prds=[(RR, 'bsoln')], rate=endo_rate)
     RR_decay_bottom = s.addReaction("RR_decay_bottom", subs=[(RR, 'bsoln')], prds=[], rate=100) 
 
-    FH_endo_top = s.addReaction("FH_endo_top", subs=[(FH, 'down')], prds=[(FH, 'fsoln')], rate=endo_rate)
-    FH_decay_top = s.addReaction("FH_decay_top", subs=[(FH, 'fsoln')], prds=[], rate=100) 
-    FH_endo_bottom = s.addReaction("FH_endo_bottom", subs=[(FH, 'up')], prds=[(FH, 'bsoln')], rate=endo_rate)
-    FH_decay_bottom = s.addReaction("FH_decay_bottom", subs=[(FH, 'bsoln')], prds=[], rate=100) 
+    #FH_endo_top = s.addReaction("FH_endo_top", subs=[(FH, 'down')], prds=[(FH, 'fsoln')], rate=endo_rate)
+    #FH_decay_top = s.addReaction("FH_decay_top", subs=[(FH, 'fsoln')], prds=[], rate=100) 
+    #FH_endo_bottom = s.addReaction("FH_endo_bottom", subs=[(FH, 'up')], prds=[(FH, 'bsoln')], rate=endo_rate)
+    #FH_decay_bottom = s.addReaction("FH_decay_bottom", subs=[(FH, 'bsoln')], prds=[], rate=100) 
     
 
     ########## FHRR endocytosis + decay 
@@ -176,8 +183,15 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
     FHRR_endo_bottom = s.addReaction("FHRR_endo_bottom", subs=[(FHRR, 'up')], prds=[(FHRR, 'bsoln')], rate=endo_rate)
     FHRR_decay_bottom = s.addReaction("FHRR_decay_bottom", subs=[(FHRR, 'bsoln')], prds=[], rate=100) 
 
+    ########## FRR endocytosis + decay 
+    # FRR_endo_top = s.addReaction("FRR_endo_top", subs=[(FRR, 'down')], prds=[(FRR, 'fsoln')], rate=endo_rate)
+    # FRR_decay_top = s.addReaction("FRR_decay_top", subs=[(FRR, 'fsoln')], prds=[], rate=100) 
+    # FRR_endo_bottom = s.addReaction("FRR_endo_bottom", subs=[(FRR, 'up')], prds=[(FRR, 'bsoln')], rate=endo_rate)
+    # FRR_decay_bottom = s.addReaction("FRR_decay_bottom", subs=[(FRR, 'bsoln')], prds=[], rate=100) 
 
-    datafile1 = f"20240403_receptorKO.csv"
+
+
+    datafile1 = f"20240311_HSPGdecay={H_decay}_iteration{filename_suffix}.csv"
     # datafile2 = f"F_coordinates-endo_rate={endo_rate}.csv"
     # datafile3 = f"H_coordinates-endo_rate={endo_rate}.csv"
     # datafile4 = f"R_coordinates-endo_rate={endo_rate}.csv"
@@ -192,6 +206,7 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
     # s.addOutputFile(datafile6, 0, 0)
     # s.addOutputFile(datafile7, 0, 0)
     s.addCommand(f"listmols2 {datafile1}", "i", on=0, off=run_time, step=0.1)
+    #s.addCommand("molcountspecies FHRR", "A")
     # s.addCommand(f"listmols3 F {datafile2}", "i", on=0, off=run_time, step=0.1)
     # s.addCommand(f"listmols3 H {datafile3}", "i", on=0, off=run_time, step=0.1)
     # s.addCommand(f"listmols3 R {datafile4}", "i", on=0, off=run_time, step=0.1)
@@ -211,17 +226,25 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
 
 
 def main(args):
-    (endo_rate, time_step, run_time) = args
-    build_model_smoldyn(endo_rate=endo_rate, time_step=time_step, run_time=run_time)
+    (endo_rate, time_step, run_time, H_decay, n) = args
+    build_model_smoldyn(endo_rate=endo_rate, time_step=time_step, run_time=run_time, H_decay=H_decay, filename_suffix=f"-{n}")
  
 
 
 if __name__ == "__main__":
     args = []
-    for endo_rate in [0.067]:
-       for (time_step, run_time) in [(0.01, 180.0)]:
-           args.append((endo_rate, time_step, run_time))
-           
+    REPEATS = 5
+
+    n = 0
+    for _ in range(REPEATS):
+        for H_decay in [0, 0.1, 0.5, 0.9, 1]:
+           for (endo_rate, time_step, run_time) in [(0.067, 0.01, 180.0)]:
+                n+= 1
+                args.append((endo_rate, time_step, run_time, H_decay, n))
+    
+    print(f"running {len(args)} simulations")           
+    
+
     with Pool(min(len(args), MAX_CPUS)) as pool:
         pool.map(main, args)
 

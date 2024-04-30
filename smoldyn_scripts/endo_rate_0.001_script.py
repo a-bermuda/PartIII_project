@@ -11,7 +11,7 @@ scriptdir = Path(__file__).parent
 MAX_CPUS = 56
 
 
-def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_step=0.01, run_time=1.0):
+def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_step=0.01, run_time=1.0, H_decay=0, filename_suffix=""):
     start_time = datetime.now()
     print(f"smoldyn: {smoldyn.version()}, building simulation: {start_time.strftime('%H:%M:%S')}")
     s = smoldyn.Simulation(low=[0, 0], high=[100, 20])
@@ -111,8 +111,8 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
     F_decay = s.addReaction("F_decay", subs=[F], prds=[], rate=endo_rate)
 
     R_vesicle_production = s.addReaction("R_vesicle_production", [], [vesicle_R], rate=R_exo_rate)
-    s.addCommand("killmol vesicle_R", cmd_type='i', on=30, off=run_time, step=0.01)
-    s.addCommand("killmol vesicle_R_top", cmd_type='i', on=30, off=run_time, step=0.01)
+    #s.addCommand("killmol vesicle_R", cmd_type='i', on=30, off=run_time, step=0.01)
+    #s.addCommand("killmol vesicle_R_top", cmd_type='i', on=30, off=run_time, step=0.01)
     R_vesicle_production_top = s.addReaction("R_vesicle_production_top", [], [vesicle_R_top], rate=R_exo_rate)
     top_PM.setRate(vesicle_R_top, 'fsoln', 'front', rate=1000, revrate=0)
     top_PM.setRate(vesicle_R_top, 'front', 'down', rate=1000, new_species=fused_vesicle_R)
@@ -124,6 +124,7 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
 
     H_vesicle_production = s.addReaction("H_vesicle_production", [], [vesicle_H], rate=exo_rate)
     H_vesicle_production_top = s.addReaction("H_vesicle_production_top", [], [vesicle_H_top], rate=exo_rate)
+    #s.addCommand(f"killmolprob H(all) {H_decay}", cmd_type='i', on=60, off=run_time, step=0.01)
     top_PM.setRate(vesicle_H_top, 'fsoln', 'front', rate=1000, revrate=0)
     top_PM.setRate(vesicle_H_top, 'front', 'down', rate=1000, new_species=fused_vesicle_H)
     bottom_PM.setRate(vesicle_H, 'bsoln', 'back', rate=1000, revrate=0)
@@ -177,23 +178,24 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
     FHRR_decay_bottom = s.addReaction("FHRR_decay_bottom", subs=[(FHRR, 'bsoln')], prds=[], rate=100) 
 
 
-    datafile1 = f"20240403_receptorKO.csv"
-    # datafile2 = f"F_coordinates-endo_rate={endo_rate}.csv"
-    # datafile3 = f"H_coordinates-endo_rate={endo_rate}.csv"
-    # datafile4 = f"R_coordinates-endo_rate={endo_rate}.csv"
-    # datafile5 = f"FH_coordinates-endo_rate={endo_rate}.csv"
-    # datafile6 = f"RR_coordinates-endo_rate={endo_rate}.csv"
-    # datafile7 = f"FHRR_coordinates-endo_rate={endo_rate}.csv"
+    datafile1 = f"iteration1_endorate={endo_rate}.csv"
+    # # datafile2 = f"F_coordinates-endo_rate={endo_rate}.csv"
+    # # datafile3 = f"H_coordinates-endo_rate={endo_rate}.csv"
+    # # datafile4 = f"R_coordinates-endo_rate={endo_rate}.csv"
+    # # datafile5 = f"FH_coordinates-endo_rate={endo_rate}.csv"
+    # # datafile6 = f"RR_coordinates-endo_rate={endo_rate}.csv"
+    # # datafile7 = f"FHRR_coordinates-endo_rate={endo_rate}.csv"
     s.addOutputFile(datafile1, 0, 0)
-    # s.addOutputFile(datafile2, 0, 0)
-    # s.addOutputFile(datafile3, 0, 0)
-    # s.addOutputFile(datafile4, 0, 0)
-    # s.addOutputFile(datafile5, 0, 0)
-    # s.addOutputFile(datafile6, 0, 0)
-    # s.addOutputFile(datafile7, 0, 0)
+    # # s.addOutputFile(datafile2, 0, 0)
+    # # s.addOutputFile(datafile3, 0, 0)
+    # # s.addOutputFile(datafile4, 0, 0)
+    # # s.addOutputFile(datafile5, 0, 0)
+    # # s.addOutputFile(datafile6, 0, 0)
+    # # s.addOutputFile(datafile7, 0, 0)
     s.addCommand(f"listmols2 {datafile1}", "i", on=0, off=run_time, step=0.1)
-    # s.addCommand(f"listmols3 F {datafile2}", "i", on=0, off=run_time, step=0.1)
-    # s.addCommand(f"listmols3 H {datafile3}", "i", on=0, off=run_time, step=0.1)
+    # s.addCommand("molcountspecies FHRR", "A")
+    # # s.addCommand(f"listmols3 F {datafile2}", "i", on=0, off=run_time, step=0.1)
+    # # s.addCommand(f"listmols3 H {datafile3}", "i", on=0, off=run_time, step=0.1)
     # s.addCommand(f"listmols3 R {datafile4}", "i", on=0, off=run_time, step=0.1)
     # s.addCommand(f"listmols3 FH {datafile5}", "i", on=0, off=run_time, step=0.1)
     # s.addCommand(f"listmols3 RR {datafile6}", "i", on=0, off=run_time, step=0.1)
@@ -211,16 +213,18 @@ def build_model_smoldyn(exo_rate=0.016, R_exo_rate=0.016, endo_rate=0.06, time_s
 
 
 def main(args):
-    (endo_rate, time_step, run_time) = args
-    build_model_smoldyn(endo_rate=endo_rate, time_step=time_step, run_time=run_time)
+    (endo_rate, time_step, run_time, H_decay) = args
+    build_model_smoldyn(endo_rate=endo_rate, time_step=time_step, run_time=run_time, H_decay=H_decay)
  
 
 
 if __name__ == "__main__":
     args = []
-    for endo_rate in [0.067]:
-       for (time_step, run_time) in [(0.01, 180.0)]:
-           args.append((endo_rate, time_step, run_time))
+    for endo_rate in [0.001]:
+        for (H_decay, time_step, run_time) in [(0.0, 0.01, 180.0)]:
+            args.append((endo_rate, time_step, run_time, H_decay))
+
+
            
     with Pool(min(len(args), MAX_CPUS)) as pool:
         pool.map(main, args)
